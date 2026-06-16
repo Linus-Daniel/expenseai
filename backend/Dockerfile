@@ -10,10 +10,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ ./app/
-COPY alembic/ ./alembic/
-COPY alembic.ini .env.example ./
-COPY ml_models/ ./ml/models/
 COPY entrypoint.sh /entrypoint.sh
+COPY ml_models/ ./ml/models/
+
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 8000
