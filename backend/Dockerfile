@@ -14,7 +14,6 @@ COPY alembic/ ./alembic/
 COPY alembic.ini .env.example ./
 COPY ml_models/ ./ml/models/
 COPY entrypoint.sh /entrypoint.sh
-
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 8000
