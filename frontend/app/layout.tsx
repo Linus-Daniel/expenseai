@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Layout from "@/components/layout";
 
 export const metadata: Metadata = {
   title: "ExpenseAI — Personal Finance",
@@ -10,8 +9,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="antialiased">
-        <Layout>{children}</Layout>
+      <body className="antialiased selection:bg-teal-500/30">
+        {children}
       </body>
     </html>
   );

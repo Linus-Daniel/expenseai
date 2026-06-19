@@ -49,7 +49,7 @@ export const api = {
       return request<Summary>(`/transactions/summary${qs ? "?" + qs : ""}`);
     },
     categorize: (description: string, merchant: string = "") =>
-      request<CategoryResult>(`/transactions/categorize?description=${encodeURIComponent(description)}&merchant=${encodeURIComponent(merchant)}`),
+      request<CategoryResult>(`/transactions/categorize?description=${encodeURIComponent(description)}&merchant=${encodeURIComponent(merchant)}`, { method: "POST" }),
   },
 
   budgets: {
@@ -67,7 +67,7 @@ export const api = {
   },
 
   recommendations: {
-    list: () => request<Recommendation[]>("recommendations/"),
+    list: () => request<Recommendation[]>("/recommendations/"),
     markRead: (id: string) =>
       request(`/recommendations/${id}/read`, { method: "PATCH" }),
     dismiss: (id: string) =>

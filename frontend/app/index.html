@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExpenseAI — Personal Finance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+    .sidebar { width: 240px; min-height: 100vh; background: #1e293b; flex-shrink: 0; position: sticky; top: 0; }
+    .sidebar a { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 8px; color: #94a3b8; text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.15s; cursor: pointer; }
+    .sidebar a:hover { background: #334155; color: #f1f5f9; }
+    .sidebar a.active { background: #0d9488; color: #fff; }
+    .sidebar .logo { padding: 20px 16px; border-bottom: 1px solid #334155; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; }
+    .badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+    .btn-primary { background: #0d9488; color: #fff; }
+    .btn-primary:hover { background: #0f766e; }
+    .btn-ghost { background: transparent; color: #64748b; }
+    .btn-ghost:hover { background: #f1f5f9; color: #1e293b; }
+    .progress-bar { height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+    .rec-card { border-radius: 12px; padding: 16px; border: 1px solid; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+    tr:hover td { background: #f8fafc; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .modal { background: #fff; border-radius: 16px; padding: 28px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+    input, select { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.15s; background: #fff; }
+    input:focus, select:focus { border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,0.1); }
+    .cat-preview { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 10px 14px; font-size: 13px; }
+    .type-btn { flex: 1; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; background: #fff; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.15s; }
+    .type-btn.active-exp { border-color: #f87171; background: #fef2f2; color: #991b1b; }
+    .type-btn.active-inc { border-color: #34d399; background: #f0fdf4; color: #065f46; }
+    .anomaly-tag { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; background: #fef3c7; color: #92400e; }
+    @media (max-width: 768px) { .sidebar { display: none; } }
+    .mobile-nav { display: none; }
+    @media (max-width: 768px) { .mobile-nav { display: flex; background: #1e293b; padding: 12px 16px; gap: 4px; overflow-x: auto; } }
+    @media (max-width: 768px) { .mobile-nav a { flex-shrink: 0; padding: 8px 12px; font-size: 12px; } }
+  </style>
+</head>
+<body class="flex">
+
+<body class="flex">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo">
+      <h1>ExpenseAI</h1>
+      <p>Personal Finance</p>
+    </div>
+    <div style="padding: 12px 8px;">
+      <a id="nav-dashboard" class="active" onclick="navigate('dashboard')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a id="nav-transactions" onclick="navigate('transactions')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Transactions
+      </a>
+      <a id="nav-budgets" onclick="navigate('budgets')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12H2M16 8H2M8 16H2"/></svg>
+        Budgets
+      </a>
+      <a id="nav-recommendations" onclick="navigate('recommendations')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        AI Advice
+      </a>
+    </div>
+    <div style="padding: 12px 8px; margin-top: auto; border-top: 1px solid #334155;">
+      <a onclick="regenerateData()" style="color: #64748b;">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Regenerate Data
+      </a>
+    </div>
+  </nav>
+
+  <!-- Mobile Nav -->
+  <div class="mobile-nav" style="position:sticky;top:0;z-index:50;">
+    <a class="active" id="mnav-dashboard" onclick="navigate('dashboard')">Dashboard</a>
+    <a id="mnav-transactions" onclick="navigate('transactions')">Transactions</a>
+    <a id="mnav-budgets" onclick="navigate('budgets')">Budgets</a>
+    <a id="mnav-recommendations" onclick="navigate('recommendations')">Advice</a>
+  </div>
+
+  <!-- Main Content -->
+  <main style="flex:1;padding:24px;max-width:1200px;width:100%;">
+    <div id="page-dashboard"></div>
+    <div id="page-transactions" style="display:none;"></div>
+    <div id="page-budgets" style="display:none;"></div>
+    <div id="page-recommendations" style="display:none;"></div>
+  </main>
+
+  <!-- Transaction Modal -->
+  <div id="txn-modal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <h2 style="font-size:18px;font-weight:700;">Add Transaction</h2>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:#64748b;">x</button>
+      </div>
+      <form id="txn-form" onsubmit="submitTransaction(event)">
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <button type="button" id="type-exp" class="type-btn active-exp" onclick="setType('expense')">Expense</button>
+          <button type="button" id="type-inc" class="type-btn" onclick="setType('income')">Income</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:4px;">Amount ($)</label>
+            <input type="number" step="0.01" min="0" id="txn-amount" placeholder="0.00" required>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:4px;">Merchant / Source</label>
+            <input type="text" id="txn-merchant" placeholder="e.g. STARBUCKS">
+          </div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:#64748b;margin-bottom:4px;">Description</label>
+          <input type="text" id="txn-desc" placeholder="e.g. COFFEE AT STARBUCKS DOWNTOWN" required>
+        </div>
+        <div id="cat-preview" class="cat-preview" style="display:none;margin-bottom:16px;">
+          <span style="font-weight:600;">AI Category:</span> <span id="cat-result"></span>
+          <span id="cat-conf" style="color:#64748b;font-size:12px;"></span>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+
+// ── State ──────────────────────────────────────────────────────────────────
+let txns = [];
+let summary = {};
+let forecast = {};
+let budgets = [];
+let recs = [];
+let currentMonth = new Date().toISOString().slice(0, 7);
+let txnType = 'expense';
+let catPreviewTimeout = null;
+let barChart = null;
+let donutChart = null;
+let forecastChart = null;
+
+// ── ML Mock: Predict Category ─────────────────────────────────────────────────
+const CATEGORIES = [
+  "Food & Dining","Groceries","Transportation","Shopping",
+  "Entertainment","Healthcare","Utilities & Bills","Travel","Education"
+];
+const CATEGORY_KEYWORDS = {
+  "Food & Dining": ["starbucks","chipotle","mcdonald","doordash","grubhub","uber eats","taco","wendy","panera","olive","pizza","burger","coffee","cafe","restaurant","food","meal","lunch","dinner","breakfast"],
+  "Groceries": ["whole foods","trader joe","kroger","safeway","costco","grocery","market","supermarket","aldi","publix","sprouts"],
+  "Transportation": ["uber","lyft","mta","nj transit","shell","chevron","exxon","bp","valero","parking","toll","ezpass","rental car","gas"],
+  "Shopping": ["amazon","target","walmart","best buy","nordstrom","macy","nike","adidas","ebay","costco","ikea","home depot","lowes","kohl","sephora","ulta","cvs","walgreens"],
+  "Entertainment": ["netflix","spotify","hbo","disney","hulu","amc","regal","ticketmaster","steam","xbox","playstation","nintendo","eventbrite"],
+  "Healthcare": ["cvs","walgreens","rite aid","pharmacy","clinic","doctor","dental","lab","medical","health","prescription"],
+  "Utilities & Bills": ["at&t","verizon","t-mobile","comcast","spectrum","con edison","pg&e","internet","utility","zoom","microsoft","google","nest","ring"],
+  "Travel": ["expedia","booking","airbnb","delta","united","southwest","jetblue","marriott","hilton","priceline","kayak"],
+  "Education": ["coursera","udemy","skillshare","linkedin learning","masterclass","book","barnes noble","edx","harvard","stanford","cfa"],
+};
+
+function predictCategory(text) {
+  const lower = (text || '').toLowerCase();
+  let best = "Uncategorized", bestScore = 0;
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    let score = 0;
+    for (const kw of keywords) {
+      if (lower.includes(kw)) score++;
+    }
+    if (score > bestScore) { bestScore = score; best = cat; }
+  }
+  const confidence = bestScore === 0 ? 0.3 : Math.min(0.5 + bestScore * 0.15, 0.99);
+  return { category: best, confidence: Math.round(confidence * 100) + '%' };
+}
+
+// ── Data Generation ──────────────────────────────────────────────────────────
+const MERCHANTS = {
+  "Food & Dining": [{n:"CHIPOTLE ONLINE",r:[8,25]},{n:"STARBUCKS #12457",r:[4,12]},{n:"DOORDASH",r:[15,55]},{n:"MCDONALD'S F3849",r:[5,18]},{n:"UBER EATS",r:[12,45]},{n:"TACO BELL #2948",r:[6,20]}],
+  "Groceries": [{n:"WHOLE FOODS MKT",r:[40,200]},{n:"TRADER JOE'S #47",r:[30,120]},{n:"KROGER #384",r:[25,150]},{n:"COSTCO WHSE #3847",r:[80,350]},{n:"SAFEWAY STORE #1847",r:[20,100]}],
+  "Transportation": [{n:"UBER TRIP",r:[8,40]},{n:"LYFT RIDE",r:[6,35]},{n:"SHELL OIL 47",r:[30,90]},{n:"PARK N FLY",r:[15,50]}],
+  "Shopping": [{n:"AMAZON.COM",r:[15,200]},{n:"TARGET #3847",r:[20,120]},{n:"BEST BUY #3847",r:[50,500]},{n:"NORDSTROM #3847",r:[40,300]}],
+  "Entertainment": [{n:"NETFLIX.COM",r:[15.99,15.99]},{n:"SPOTIFY PREMIUM",r:[9.99,9.99]},{n:"AMC THEATRES #3847",r:[12,30]},{n:"STEAM GAMES PURCH",r:[5,60]}],
+  "Healthcare": [{n:"CVS PHARMACY #3847",r:[10,80]},{n:"DR. SMITH MD OFFICE",r:[50,200]},{n:"QUEST DIAGNOSTICS",r:[20,150]}],
+  "Utilities & Bills": [{n:"AT&T WIRELESS",r:[65,120]},{n:"COMCAST XFINITY",r:[79,130]},{n:"CON EDISON",r:[40,150]},{n:"GOOGLE ONE STORAGE",r:[2.99,9.99]}],
+  "Travel": [{n:"EXPEDIA HOTELS",r:[80,400]},{n:"DELTA AIRLINES",r:[150,800]},{n:"AIRBNB HOST",r:[60,300]}],
+  "Education": [{n:"COURSERA CERT",r:[39,79]},{n:"UDEMY ONLINE",r:[10,200]},{n:"SKILLSHARE SUB",r:[13,30]}],
+};
+
+function rand(a, b) { return Math.round((a + Math.random() * (b - a)) * 100) / 100; }
+function randDate(s, e) {
+  const d = new Date(s.getTime() + Math.random() * (e.getTime() - s.getTime()));
+  return d.toISOString().split('T')[0];
+}
+
+function generateData() {
+  const allTxns = [];
+  const end = new Date();
+  const start = new Date(end); start.setMonth(start.getMonth() - 6);
+
+  // Monthly salaries
+  for (let d = new Date(start.getFullYear(), start.getMonth(), 1); d <= end; d.setMonth(d.getMonth() + 1)) {
+    const sd = new Date(d.getFullYear(), d.getMonth(), 1);
+    allTxns.push({
+      id: crypto.randomUUID(), amount: 5500, type: 'income',
+      description: 'PAYROLL DIRECT DEP - MONTHLY SALARY', merchant: 'PAYROLL DIRECT DEP',
+      category: 'Salary/Income', predictedCategory: 'Salary/Income',
+      isAnomaly: false, anomalyScore: null, date: sd.toISOString().split('T')[0]
+    });
+  }
+
+  // Random expenses
+  for (let i = 0; i < 200; i++) {
+    const cat = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+    const ml = MERCHANTS[cat];
+    const m = ml[Math.floor(Math.random() * ml.length)];
+    const amount = rand(m.r[0], m.r[1]);
+    const isAnomaly = Math.random() < 0.02;
+    allTxns.push({
+      id: crypto.randomUUID(), amount, type: 'expense',
+      description: m.n + ' - ' + cat, merchant: m.n,
+      category: cat, predictedCategory: cat,
+      isAnomaly, anomalyScore: isAnomaly ? rand(0.6, 0.99) : null,
+      date: randDate(start, end),
+    });
+  }
+
+  return allTxns.sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+function computeSummary(txs) {
+  const income = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const expenses = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const catTotals = {};
+  txs.filter(t => t.type === 'expense').forEach(t => {
+    catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
+  });
+  const sorted = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+  return {
+    totalIncome: Math.round(income * 100) / 100,
+    totalExpenses: Math.round(expenses * 100) / 100,
+    netSavings: Math.round((income - expenses) * 100) / 100,
+    topCategory: sorted[0]?.[0] || null,
+    catTotals: Object.fromEntries(sorted),
+    anomalyCount: txs.filter(t => t.isAnomaly).length,
+  };
+}
+
+function computeForecast(txs) {
+  const daily = {};
+  txs.filter(t => t.type === 'expense').forEach(t => {
+    daily[t.date] = (daily[t.date] || 0) + t.amount;
+  });
+  const vals = Object.values(daily);
+  const avg = vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 0;
+  const forecast = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() + i + 1);
+    return { date: d.toISOString().split('T')[0], predicted: Math.round(avg * rand(0.7, 1.3) * 100) / 100 };
+  });
+  return { avgDaily: Math.round(avg * 100) / 100, forecast, confidence: 0.78 };
+}
+
+function computeBudgets(txs, month) {
+  const spent = {};
+  txs.filter(t => t.type === 'expense' && t.date.startsWith(month))
+    .forEach(t => { spent[t.category] = (spent[t.category] || 0) + t.amount; });
+  const LIMITS = {"Food & Dining":600,Groceries:500,Transportation:300,Shopping:400,Entertainment:150,Healthcare:200,"Utilities & Bills":350,Travel:200,Education:150};
+  return CATEGORIES.map(cat => ({
+    id: crypto.randomUUID(), category: cat,
+    limit: LIMITS[cat] || 300,
+    spent: Math.round((spent[cat] || 0) * 100) / 100,
+    month,
+  }));
+}
+
+function computeRecs(summary) {
+  const recs = [];
+  const sr = summary.netSavings / summary.totalIncome;
+  if (summary.netSavings < 0) {
+    recs.push({ id: crypto.randomUUID(), type: 'budget', title: 'You spent more than you earned',
+      body: 'Overspent by $' + Math.abs(summary.netSavings).toFixed(2) + '. Review your top categories.', priority: 1 });
+  } else if (sr < 0.1) {
+    recs.push({ id: crypto.randomUUID(), type: 'savings', title: 'Low savings rate',
+      body: (sr * 100).toFixed(1) + '% savings rate — below the recommended 20%. Automate transfers to savings.', priority: 1 });
+  } else if (sr >= 0.2) {
+    recs.push({ id: crypto.randomUUID(), type: 'savings', title: 'Great savings discipline!',
+      body: (sr * 100).toFixed(1) + '% savings rate. Consider investing surplus in diversified index funds.', priority: 3 });
+  }
+  const thr = {"Food & Dining":0.12,Groceries:0.10,Transportation:0.10,Entertainment:0.05,Shopping:0.08,"Utilities & Bills":0.08,Healthcare:0.05,Travel:0.05,Education:0.05};
+  Object.entries(summary.catTotals).slice(0, 3).forEach(([cat, spend]) => {
+    const pct = spend / summary.totalIncome;
+    const t = thr[cat] || 0.08;
+    if (pct > t) {
+      const savings = spend - summary.totalIncome * t;
+      recs.push({ id: crypto.randomUUID(), type: 'budget',
+        title: cat + ' spending above recommended',
+        body: (pct * 100).toFixed(1) + '% of income on ' + cat + ' (max: ' + (t * 100).toFixed(0) + '%). Save ~$' + savings.toFixed(2) + '/mo by reducing.',
+        priority: pct > t * 1.5 ? 1 : 2 });
+    }
+  });
+  if (summary.anomalyCount > 0) {
+    recs.push({ id: crypto.randomUUID(), type: 'anomaly', title: summary.anomalyCount + ' unusual transaction(s)',
+      body: "Some transactions don't match your normal spending pattern. Review them in Transactions.", priority: 1 });
+  }
+  return recs.sort((a, b) => a.priority - b.priority);
+}
+
+// ── Utilities ────────────────────────────────────────────────────────────────
+const fmt = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+const fmtDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+function progressColor(pct) {
+  if (pct >= 100) return '#ef4444';
+  if (pct >= 80) return '#f59e0b';
+  return '#0d9488';
+}
+
+function priorityBadge(p) {
+  if (p === 1) return '<span class="badge" style="background:#fee2e2;color:#991b1b;">High</span>';
+  if (p === 2) return '<span class="badge" style="background:#fef3c7;color:#92400e;">Medium</span>';
+  return '<span class="badge" style="background:#f1f5f9;color:#475569;">Low</span>';
+}
+
+function recTypeColor(type) {
+  if (type === 'budget') return 'rec-high';
+  if (type === 'savings') return 'rec-medium';
+  return 'rec-medium';
+}
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+function navigate(page) {
+  ['dashboard','transactions','budgets','recommendations'].forEach(p => {
+    document.getElementById('page-' + p).style.display = p === page ? 'block' : 'none';
+    const nav = document.getElementById('nav-' + p);
+    const mnav = document.getElementById('mnav-' + p);
+    if (nav) nav.className = 'active';
+    else if (mnav) mnav.className = 'active';
+    ['nav-','mnav-'].forEach(prefix => {
+      const el = document.getElementById(prefix + p);
+      if (el && el !== (prefix === 'nav-' ? document.getElementById('nav-' + page) : document.getElementById('mnav-' + page))) {
+        el.className = '';
+      }
+    });
+  });
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'transactions') renderTransactions();
+  if (page === 'budgets') renderBudgets();
+  if (page === 'recommendations') renderRecs();
+}
+

@@ -1,7 +1,6 @@
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Float, DateTime, Boolean, Integer, ForeignKey, Text, Enum as SAEnum
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import enum
 from app.database import Base
@@ -15,8 +14,8 @@ class TransactionType(str, enum.Enum):
 class Transaction(Base):
     __tablename__ = "transactions"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     amount = Column(Float, nullable=False)
     transaction_type = Column(SAEnum(TransactionType), nullable=False)
     description = Column(Text, nullable=False)
@@ -35,7 +34,7 @@ class Transaction(Base):
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = Column(String(255), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=True)
@@ -54,8 +53,8 @@ class User(Base):
 class Budget(Base):
     __tablename__ = "budgets"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     category = Column(String(100), nullable=False)
     monthly_limit = Column(Float, nullable=False)
     current_spent = Column(Float, default=0.0)
@@ -67,8 +66,8 @@ class Budget(Base):
 class Recommendation(Base):
     __tablename__ = "recommendations"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     recommendation_type = Column(String(50), nullable=False)  # budget, savings, anomaly
     title = Column(String(255), nullable=False)
     body = Column(Text, nullable=False)
