@@ -13,30 +13,15 @@ settings = get_settings()
 security = HTTPBearer()
 
 
-def _get_bcrypt_context():
-    """Try passlib+bcrypt first, fall back to a stub if bcrypt 5.x is broken."""
-    try:
-        from passlib.context import CryptContext
-        return CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
-    except Exception:
-        # bcrypt 5.x breaks passlib — use it directly
-        import bcrypt
-        class BcryptStub:
-            def hash(self, password: str) -> str:
-                return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-            def verify(self, plain: str, hashed: str) -> bool:
-                return bcrypt.checkpw(plain.encode(), hashed.encode())
-        return BcryptStub()
-
-_pwd_ctx = _get_bcrypt_context()
+import bcrypt
 
 
 def hash_password(password: str) -> str:
-    return _pwd_ctx.hash(password)
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(12)).decode('utf-8')
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return _pwd_ctx.verify(plain, hashed)
+    return bcrypt.checkpw(plain.encode('utf-8'), hashed.encode('utf-8'))
 
 
 def create_access_token(user_id: str, expires_delta: Optional[timedelta] = None) -> str:
