@@ -7,16 +7,14 @@ from alembic import context
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from app.config import get_settings
 from app.database import Base
 from app.models.user import User, Transaction, Budget, Recommendation
 
 config = context.config
 
-# Read DATABASE_URL from environment (sync driver for alembic)
-database_url = os.environ.get(
-    "DATABASE_URL_SYNC",
-    "postgresql+psycopg2://postgres:postgres@localhost:5432/expenseai"
-)
+settings = get_settings()
+database_url = settings.DATABASE_URL_SYNC
 config.set_main_option("sqlalchemy.url", database_url)
 
 if config.config_file_name is not None:
