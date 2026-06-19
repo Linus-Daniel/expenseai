@@ -13,6 +13,13 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Automatically create tables if they do not exist
+    from app.database import engine, Base
+    from app.models.user import User, Transaction, Budget, Recommendation
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    print("[DB] Database tables checked/created")
+
     from app.services.ml_service import get_category_service, get_forecast_service, get_anomaly_service
     cat = get_category_service()
     fc = get_forecast_service()
