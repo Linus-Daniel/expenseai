@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # Resolve ml/models relative to the project root (one level up from backend/)
-    MODEL_DIR: str = os.path.join(os.path.dirname(os.path.dirname(__file__)), "ml", "models")
+    MODEL_DIR: str = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "ml", "models")
 
     REDIS_URL: str = "redis://localhost:6379/0"
 

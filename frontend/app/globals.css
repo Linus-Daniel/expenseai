@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
-
 :root {
   --background: #f8fafc; /* slate-50 */
   --foreground: #0f172a; /* slate-900 */
@@ -12,18 +10,6 @@
   --primary-foreground: #ffffff;
   --muted: #f1f5f9; /* slate-100 */
   --muted-foreground: #64748b; /* slate-500 */
-}
-
-.dark {
-  --background: #020617; /* slate-950 */
-  --foreground: #f8fafc; /* slate-50 */
-  --card: #0f172a; /* slate-900 */
-  --card-foreground: #f8fafc;
-  --border: #1e293b; /* slate-800 */
-  --primary: #14b8a6; /* teal-500 */
-  --primary-foreground: #020617;
-  --muted: #0f172a;
-  --muted-foreground: #94a3b8; /* slate-400 */
 }
 
 @theme inline {
@@ -50,4 +36,10 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
+}
+
+/* Ensure inputs, select boxes, and textareas are readable with dark text and white background */
+input, select, textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
 }
